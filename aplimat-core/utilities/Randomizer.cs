@@ -8,6 +8,7 @@ namespace aplimat_core.utilities
 {
     public class Randomizer
     {
+        private double d_min, d_max;
         private int min, max;
         private Random random;
 
@@ -18,9 +19,21 @@ namespace aplimat_core.utilities
             random = new Random();
         }
 
+        public Randomizer(double d_min, double d_max)
+        {
+            this.d_min = d_min;
+            this.d_max = d_max + 1;
+            this.random = new Random();
+        }
+
         public int Generate()
         {
             return random.Next(min, max);
+        }
+
+        public double GenerateDouble()
+        {
+            return random.NextDouble() * (d_max - d_min) + d_min;
         }
     }
 }

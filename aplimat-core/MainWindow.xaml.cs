@@ -30,16 +30,53 @@ namespace aplimat_lab
 
         }
 
+        private List<CubeMesh> cubes = new List<CubeMesh>();
+
+        private Randomizer scRandomizer = new Randomizer(0, 3);
+        private Randomizer yRandomizer = new Randomizer(30, 50);
+        private Randomizer mRandomizer = new Randomizer(1, 6);
+
+        private Vector3 mousePos = new Vector3();
+        private Vector3 gravity = new Vector3(0, -.4f, 0);
+        private Vector3 mGravity = new Vector3();
+
+        private float yBottom = -45;
+
         private void OpenGLControl_OpenGLDraw(object sender, SharpGL.SceneGraph.OpenGLEventArgs args)
         {
             OpenGL gl = args.OpenGL;
 
-            // Clear The Screen And The Depth Buffer
+            /// Clear The Screen And The Depth Buffer
             gl.Clear(OpenGL.GL_COLOR_BUFFER_BIT | OpenGL.GL_DEPTH_BUFFER_BIT);
 
-            // Move Left And Into The Screen
+            /// Move Left And Into The Screen
             gl.LoadIdentity();
             gl.Translate(0.0f, 0.0f, -100.0f);
+
+            /// Draw Cubes
+
+            mousePos.Normalize();
+            mousePos *= 10;
+            mGravity = mousePos;
+
+            CubeMesh cube = new CubeMesh();
+            cube.Position = new aplimat_core.models.Vector3((float)Gaussian.Generate(0, 30), (float)yRandomizer.Generate(), 0);
+            float cubeScale = (float)scRandomizer.Generate();
+            cube.Scale = new Vector3(cubeScale, cubeScale, 1);
+            cube.Mass = mRandomizer.Generate();
+
+            cubes.Add(cube);
+
+            foreach (var c in cubes)
+            {
+                c.Draw(gl);
+                c.ApplyForce(gravity);
+                if(c.Position.y <= yBottom)
+                {
+                    c.Velocity.y *= -1;
+                    c.Velocity /= 2;
+                }
+            }
         }
 
         #region Initialization
@@ -77,8 +114,18 @@ namespace aplimat_lab
         private void OnMouseMove(object sender, MouseEventArgs e)
         {
             var position = e.GetPosition(this);
-            //to get X = (float)position.X - (float)Width / 2.0f;
-            //to get Y = -((float)position.Y - (float)Height / 2.0f);
+            mousePos.x = (float)position.X - (float)Width / 2.0f;
+            mousePos.y = -((float)position.Y - (float)Height / 2.0f);
+            //mousePos.y = -mousePos.y;
+
+            foreach(var c in cubes)
+            {
+                mousePos.Normalize();
+                mousePos /= 10 ;
+                c.ApplyForce(mousePos);
+            }
+
+            Console.WriteLine("mouse x:" + mousePos.x + "    y:" + mousePos.y);
         }
         #endregion
 
